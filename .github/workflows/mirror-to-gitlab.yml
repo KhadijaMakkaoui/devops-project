@@ -24,7 +24,7 @@ jobs:
         run: |
           # 1. Setup the GitLab remote URL using the secret
           # Replace 'username/repo' with your actual GitLab path
-          GITLAB_URL="https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/KhadijaMakkaoui/devops-project.git"
+          GITLAB_URL="https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/devops-grp2570751/devops-project.git"
           
           # 2. Add GitLab as a remote
           git remote add gitlab "$GITLAB_URL"
