@@ -132,11 +132,11 @@ terraform -chdir=terraform/dev destroy
 <li>bucket-prod-brief3</li>
 </ul>
 <hr>
-<p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1
-aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
+<p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1</p>
+<p>aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
 <hr>
-<p>aws s3api put-bucket-versioning --bucket bucket-dev-brief3 --versioning-configuration Status=Enabled
-aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configuration Status=Enabled</p>
+<p>aws s3api put-bucket-versioning --bucket bucket-dev-brief3 --versioning-configuration Status=Enabled</p>
+<p>aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configuration Status=Enabled</p>
 <hr>
 <p>aws s3api put-public-access-block --bucket bucket-dev-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
