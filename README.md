@@ -126,12 +126,13 @@ terraform -chdir=terraform/dev destroy
   - `frontend_image` (ECR URI)
 - Recommandation : ajouter un ALB public (dans subnets publics) et router vers le container frontend:80, tout en gardant les tasks en subnets privés (pattern du diagramme). [file:1]
 
-<h2>N.B : il faut ajouter les buckets suivant sur S3:  </h2>
+<h2>Création des buckets suivant sur S3:  </h2>
 <ul>
 <li>bucket-dev-brief3</li>
 <li>bucket-prod-brief3</li>
 </ul>
 <hr>
+<<<<<<< HEAD
 <p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1</p>
 <p>aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
 <hr>
@@ -140,6 +141,19 @@ terraform -chdir=terraform/dev destroy
 <hr>
 <p>aws s3api put-public-access-block --bucket bucket-dev-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
 aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
+=======
+<h4>Créer les buckets sur la region(us-east-1)</h4>
+<p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1</p>
+<p>aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
+
+<h4>Sécuriser les buckets et Activer le versioning</h4>
+
+<p>aws s3api put-bucket-versioning --bucket bucket-dev-brief3 --versioning-configuration Status=Enabled</p>
+<p>aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configuration Status=Enabled</p>
+<h4>Bloquer l’accès public</h4>
+<p>aws s3api put-public-access-block --bucket bucket-dev-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
+<p>aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
+>>>>>>> a522641 (Dockerfile+ Terraform VPC, ECS, S3)
 
 <h3>Réinitialiser Terraform sur DEV et PROD</h3>
 <p>- terraform -chdir=terraform/dev init -reconfigure</p>
