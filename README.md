@@ -142,6 +142,6 @@ aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configu
 aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
 
 <h3>Réinitialiser Terraform sur DEV et PROD</h3>
-- terraform -chdir=terraform/dev init -reconfigure
-- terraform -chdir=terraform/prod init -reconfigure
+<p>- terraform -chdir=terraform/dev init -reconfigure</p>
+<p>- terraform -chdir=terraform/prod init -reconfigure</p>
 
