@@ -1,0 +1,35 @@
+name: Mirror to GitLab
+
+on:
+  push:
+    # This triggers the sync on every push to any branch
+    branches:
+      - '**'
+  delete:
+    # This ensures if you delete a branch on GitHub, it deletes on GitLab too
+    branches:
+      - '**'
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # "fetch-depth: 0" is critical to get all branches and history
+          fetch-depth: 0
+
+      - name: Push to GitLab
+        run: |
+          # 1. Setup the GitLab remote URL using the secret
+          # Replace 'username/repo' with your actual GitLab path
+          GITLAB_URL="https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/KhadijaMakkaoui/devops-project.git"
+          
+          # 2. Add GitLab as a remote
+          git remote add gitlab "$GITLAB_URL"
+          
+          # 3. Force push all branches and tags to GitLab
+          # --prune removes branches on GitLab that no longer exist on GitHub
+          git push --force --prune gitlab "refs/remotes/origin/*:refs/heads/*"
+          git push --force --prune gitlab --tags
