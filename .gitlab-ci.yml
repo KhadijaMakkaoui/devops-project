@@ -140,15 +140,18 @@ terraform_apply:
   stage: infra_apply
   image:
     name: hashicorp/terraform:latest
-    entrypoint: [""]
+    #entrypoint: [""]
   ##################
   needs:
     - job: terraform_plan
+      artifacts: true
+    - job: package_lambda
       artifacts: true
   ##################
   script:
     - cd terraform/dev
     - terraform init
+    - test -f "${CI_PROJECT_DIR}/dist/lambda_nodejs.zip"
     - terraform apply -auto-approve tfplan
   
   rules:
