@@ -66,22 +66,20 @@ stages:
   - validate
   - infra_plan
   - infra_apply
-  - infra_destroy
   - build
   - package
   - deploy
 
 variables:
+#
   TF_INPUT: "false"
   TF_IN_AUTOMATION: "true"
-
+#
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
-
   ECR_REGISTRY: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
   ECR_REPOSITORY: ${REPO_NAME}
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
-
   S3_BUCKET_NAME: "votre-bucket-angular-ici" # Assurez-vous que ce bucket est créé par Terraform
 
 # -----------------------------
@@ -121,9 +119,11 @@ terraform_plan:
   image:
     name: hashicorp/terraform:latest
     entrypoint: [""]
+  ###########################
   needs:
     - job: package_lambda
       artifacts: true
+  ###########################
   script:
     - cd terraform/dev
     - terraform init
@@ -137,41 +137,30 @@ terraform_plan:
     expire_in: 1 hour
 
 terraform_apply:
-  stage: infra_apply
   image:
     name: hashicorp/terraform:latest
     entrypoint: [""]
+  stage: infra_apply
+  ##################
   needs:
     - job: terraform_plan
       artifacts: true
     - job: package_lambda
       artifacts: true
+  ##################
   script:
     - cd terraform/dev
     - terraform init
     #- test -f "${CI_PROJECT_DIR}/dist/lambda_nodejs.zip"
     - terraform apply -auto-approve tfplan
+  
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
       when: on_success
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
-
-# -----------------------------
-# Terraform Destroy
-# -----------------------------
-terraform_destroy_dev:
-  stage: infra_destroy
-  image:
-    name: hashicorp/terraform:latest
-    entrypoint: [""]
-  script:
-    - cd terraform/dev
-    - terraform init
-    - terraform plan -destroy
-    - terraform destroy -auto-approve
-  when: manual
-  allow_failure: false
+  #dependencies:
+  #  - terraform_plan
 
 # --- 2. BUILD STAGE (Java & Angular) ---
 
@@ -243,3 +232,19 @@ deploy_frontend_s3:
   rules:
     - changes:
         - product-service-fe/**/*
+
+  ######################
+  # Terraform Destroy ##
+  ######################
+  terraform_destroy_dev:
+  image:
+    name: hashicorp/terraform:latest
+    entrypoint: [""]
+  stage: infra_destroy
+  script:
+    - cd terraform/dev
+    - terraform init
+    - terraform plan -destroy
+    - terraform destroy -auto-approve
+  when: manual
+  allow_failure: false
