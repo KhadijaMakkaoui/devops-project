@@ -73,9 +73,9 @@ module "rds" {
   ecs_sg_id = module.ecs.service_sg_id 
 }
 
-#################################
+##################################
 # Registres (ECR)
-#################################
+##################################
 module "ecr_backend" {
   source = "../modules/ecr"
   name   = "brief3-backend"
