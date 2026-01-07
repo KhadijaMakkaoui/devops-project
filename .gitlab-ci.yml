@@ -243,3 +243,19 @@ deploy_frontend_s3:
   rules:
     - changes:
         - product-service-fe/**/*
+###################################
+####################################
+##################################
+upload_lambda_s3:
+  stage: validate
+  image: amazon/aws-cli
+  needs:
+    - job: package_lambda
+      artifacts: true
+  script:
+    - aws s3 cp "${CI_PROJECT_DIR}/dist/lambda_nodejs.zip" "s3://${LAMBDA_ARTIFACTS_BUCKET}/lambda/worker/lambda_nodejs.zip"
+  artifacts:
+    expire_in: 1 hour
+###################################
+###################################
+

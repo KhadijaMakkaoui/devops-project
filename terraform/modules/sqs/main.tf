@@ -69,8 +69,11 @@ resource "aws_lambda_function" "worker" {
   handler       = var.lambda_handler
   runtime       = var.lambda_runtime
 
-  filename         = var.lambda_zip_path
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  s3_bucket = var.lambda_s3_bucket
+  s3_key    = var.lambda_s3_key
+
+  #filename         = var.lambda_zip_path
+  #source_code_hash = filebase64sha256(var.lambda_zip_path)
 
   timeout = var.lambda_timeout
   tags    = local.common_tags

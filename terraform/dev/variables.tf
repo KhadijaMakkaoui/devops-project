@@ -17,3 +17,13 @@ variable "lambda_zip_path" {
   description = "Chemin local du zip Lambda (Node.js)."
 }
 
+variable "lambda_s3_bucket" { 
+  type = string 
+}
+variable "lambda_s3_key"    {
+  type = string 
+}
+variable "lambda_source_code_hash" { 
+  type = string
+  default = null 
+  }

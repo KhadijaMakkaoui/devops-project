@@ -73,9 +73,9 @@ module "rds" {
   ecs_sg_id = module.ecs.service_sg_id 
 }
 
-#################################
+##################################
 # Registres (ECR)
-#################################
+##################################
 module "ecr_backend" {
   source = "../modules/ecr"
   name   = "brief3-backend"
@@ -94,6 +94,10 @@ module "ecr_frontend" {
 module "sqs" {
   source = "../modules/sqs"
 
+  lambda_s3_bucket = var.lambda_s3_bucket
+  lambda_s3_key    = var.lambda_s3_key
+  # lambda_source_code_hash = var.lambda_source_code_hash
+  
   project         = "devops-project"
   environment     = "dev"
   lambda_zip_path = var.lambda_zip_path # Assurez-vous que cette variable est dans variables.tf
