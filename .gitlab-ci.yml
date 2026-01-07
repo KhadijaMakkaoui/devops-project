@@ -248,14 +248,16 @@ deploy_frontend_s3:
 ##################################
 upload_lambda_s3:
   stage: validate
-  image: amazon/aws-cli
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint: [""]
   needs:
     - job: package_lambda
       artifacts: true
   script:
+    - aws --version
+    - test -f "${CI_PROJECT_DIR}/dist/lambda_nodejs.zip"
     - aws s3 cp "${CI_PROJECT_DIR}/dist/lambda_nodejs.zip" "s3://${LAMBDA_ARTIFACTS_BUCKET}/lambda/worker/lambda_nodejs.zip"
-  artifacts:
-    expire_in: 1 hour
 ###################################
 ###################################
 
