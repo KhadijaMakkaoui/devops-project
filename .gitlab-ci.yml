@@ -144,11 +144,18 @@ package_frontend:
 deploy_ecs:
   stage: deploy
   image:
-    name: amazon/aws-cli:latest
+    name: hashicorp/terraform:latest
     entrypoint: [""]
   needs: ["terraform_apply", "package_backend", "package_frontend"]
   script:
-    - aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment --region $AWS_REGION
+    - apk add --no-cache aws-cli
+    - cd terraform/dev
+    - terraform init
+    - export ECS_CLUSTER_NAME="$(terraform output -raw ecs_cluster_name)"
+    - export ECS_SERVICE_NAME="$(terraform output -raw ecs_service_name)"
+    - test -n "$ECS_CLUSTER_NAME"
+    - test -n "$ECS_SERVICE_NAME"
+    - aws ecs update-service --cluster "$ECS_CLUSTER_NAME" --service "$ECS_SERVICE_NAME" --force-new-deployment --region "$AWS_REGION"
 # ---------------------------------------------------------
 # 5) CLEANUP : Terraform Destroy
 # ---------------------------------------------------------
