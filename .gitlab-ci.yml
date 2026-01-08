@@ -143,7 +143,9 @@ package_frontend:
 # ---------------------------------------------------------
 deploy_ecs:
   stage: deploy
-  image: amazon/aws-cli
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint: [""]
   needs: ["terraform_apply", "package_backend", "package_frontend"]
   script:
     - aws ecs update-service --cluster $ECS_CLUSTER_NAME --service $ECS_SERVICE_NAME --force-new-deployment --region $AWS_REGION
