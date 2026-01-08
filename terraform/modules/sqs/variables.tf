@@ -9,10 +9,10 @@ variable "tags" {
     default = {} 
     }
 
-variable "lambda_zip_path" {
-  type        = string
-  description = "Chemin vers le zip de la Lambda (ex: lambda.zip ou chemin relatif)."
-}
+#variable "lambda_zip_path" {
+#  type        = string
+#  description = "Chemin vers le zip de la Lambda (ex: lambda.zip ou chemin relatif)."
+#}
 
 variable "lambda_handler" {
   type    = string
