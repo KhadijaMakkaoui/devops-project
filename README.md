@@ -1,17 +1,15 @@
 # 🚀 DevOps Project — GitLab CI/CD + Terraform + AWS
-ECS Fargate + ALB + ECR + RDS + SQS + Lambda
-
+**ECS Fargate + ALB + ECR + RDS + SQS + Lambda
+**
 ---
 
 <details>
-<summary>🎯 Objectif</summary>
-
+<summary>🎯 <strong>Objectif</strong></summary>
 Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform pour provisionner et déployer une application Full Stack sur AWS ECS Fargate (2 containers : backend + frontend), exposée via un ALB, avec RDS, SQS + Lambda et ECR.
-
 </details>
 
 <details>
-<summary>🏗 Architecture (Résumé)</summary>
+<summary>🏗 <strong>Architecture (Résumé)</strong></summary>
 
 - **VPC (DEV/PROD)** : subnets publics + privés (multi-AZ) + NAT (DEV optimisé coût)  
 - **ALB public** : écoute HTTP:80 → Target Group “frontend”  
@@ -23,7 +21,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>🧩 Architecture du projet (Vue logique AWS)</summary>
+<summary>🧩 <strong>Architecture du projet (Vue logique AWS)</strong></summary>
 
 - **VPC (us-east-1)** : public + private subnets  
 - **NAT Gateway** : accès Internet pour tasks privées  
@@ -39,7 +37,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>🔗 Liens Réels (DEV)</summary>
+<summary>🔗 <strong>Liens Réels (DEV)</strong></summary>
 
 - URL ALB : [frontend](http://devops-project-dev-alb-973074401.us-east-1.elb.amazonaws.com/)  
 - AWS Region : us-east-1  
@@ -47,7 +45,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>📂 Structure du repository</summary>
+<summary>📂 <strong>Structure du repository</strong></summary>
 
 - `terraform/modules/` : modules Terraform  
 - `terraform/dev/` : environnement DEV  
@@ -57,7 +55,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>⚙️ Prérequis</summary>
+<summary>⚙️ <strong>Prérequis</strong></summary>
 
 - Terraform, AWS CLI, Docker  
 - Variables GitLab CI/CD : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ACCOUNT_ID, AWS_REGION, TF_VAR_db_password, LAMBDA_S3_BUCKET  
@@ -65,7 +63,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>🛠 Pipeline GitLab CI/CD (Stages)</summary>
+<summary>🛠 <strong>Pipeline GitLab CI/CD (Stages)</strong></summary>
 
 - validate  
 - package_lambda → dist/lambda_nodejs.zip  
@@ -81,7 +79,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>🧪 Tests post-déploiement (DEV)</summary>
+<summary>🧪<strong> Tests post-déploiement (DEV)</strong></summary>
 
 1. Test HTTP frontend via ALB  
 2. Vérifier ECS → service stable  
@@ -90,7 +88,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>☁️ Buckets S3</summary>
+<summary>☁️ <strong>Buckets S3</strong></summary>
 
 - bucket-dev-brief3  
 - bucket-prod-brief3  
@@ -98,7 +96,7 @@ Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform p
 </details>
 
 <details>
-<summary>💻 Commandes utiles</summary>
+<summary>💻 <strong>Commandes utiles</strong></summary>
 
 <pre style="background-color:#272822; color:#f8f8f2; padding:10px; border-radius:5px; overflow-x:auto;">
 terraform -chdir=terraform/dev init
@@ -109,10 +107,12 @@ terraform -chdir=terraform/dev output -raw alb_dns_name
 
 </details>
 
-<details> <summary>⚠️ Troubleshooting</summary>
+<details> <summary>⚠️ <strong>Troubleshooting<strong></summary>
 <ul>
 <li>amazon/aws-cli GitLab CI : entrypoint: [""] si erreurs</li>
 <li>Variables ECS vides → lire via terraform output -raw</li>
 <li>Terraform “Unsupported argument” → vérifier modules pushés</li>
 <ul>
 </details>
+<hr style="border:1px solid #4CAF50;">
+<p style="text-align:center; color:#777; font-size:0.9em;">Made with ❤️ by Yassine Chahbounia</p>
