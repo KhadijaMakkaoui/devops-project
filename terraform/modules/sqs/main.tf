@@ -24,9 +24,9 @@ resource "aws_s3_bucket" "lambda_artifacts" {
 resource "aws_s3_object" "lambda_code" {
   bucket = aws_s3_bucket.lambda_artifacts.id
   key    = var.lambda_s3_key
-  source = var.lambda_zip_path
+  #source = var.lambda_zip_path
   # Le etag permet de forcer la mise à jour si le contenu du ZIP change
-  etag   = filemd5(var.lambda_zip_path)
+  #etag   = filemd5(var.lambda_zip_path)
 }
 
 #################################
@@ -106,7 +106,7 @@ resource "aws_lambda_function" "worker" {
   s3_key    = aws_s3_object.lambda_code.key
 
   # Détection automatique de changement de code
-  source_code_hash = filebase64sha256(var.lambda_zip_path)
+  #source_code_hash = filebase64sha256(var.lambda_zip_path)
 
   # IMPORTANT : On attend que l'objet S3 soit créé avant de créer la Lambda
   depends_on = [

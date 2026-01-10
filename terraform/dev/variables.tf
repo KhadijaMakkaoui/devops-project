@@ -12,17 +12,14 @@ variable "db_password" {
   type = string
   sensitive = true 
 }
-variable "lambda_zip_path" {
-  type        = string
-  description = "Chemin local du zip Lambda (Node.js)."
-}
 
-# variable "lambda_s3_bucket" { 
-#   type = string 
+variable "lambda_s3_bucket" { 
+   type = string 
 #   default = "lambda-s3-bucket-devops-brief"
-# }
+}
 variable "lambda_s3_key"    {
   type = string 
+  default = "lambda/worker/lambda_nodejs.zip"
 }
 variable "lambda_source_code_hash" { 
   type = string
