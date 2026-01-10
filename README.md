@@ -1,161 +1,118 @@
-# Infrastructure Lead (Person 1) — Terraform / AWS Networking / Provisioning
-
-## Objectif
-Ce dépôt contient l’infrastructure **AWS** provisionnée avec **Terraform** pour supporter une chaîne CI/CD et un déploiement applicatif sur **ECS Fargate**, avec une séparation **DEV / PROD**.  
-Le périmètre de Person 1 couvre principalement : **réseau (VPC)**, **provisionnement des ressources de base**, et **socle ECS** prêt à consommer des images Docker (ECR) et à écrire des logs (CloudWatch). [file:1]
+# 🚀 DevOps Project — GitLab CI/CD + Terraform + AWS
+ECS Fargate + ALB + ECR + RDS + SQS + Lambda
 
 ---
 
-## Périmètre réalisé (Person 1)
-### 1) Module VPC (réseau)
-Implémentation d’un module réutilisable `terraform/modules/vpc` puis intégration dans :
-- `terraform/dev` (2 AZ, *single* NAT gateway pour réduire les coûts)
-- `terraform/prod` (3 AZ, NAT gateway par AZ pour meilleure disponibilité)
+<details>
+<summary>🎯 Objectif</summary>
 
-Ressources typiques créées par le module VPC :
-- VPC
-- Subnets publics + privés (multi-AZ)
-- Internet Gateway + routes publiques
-- NAT Gateway + routes privées (DEV = 1 NAT / PROD = 1 NAT par AZ)
+Ce dépôt implémente une chaîne CI/CD complète avec GitLab CI et Terraform pour provisionner et déployer une application Full Stack sur AWS ECS Fargate (2 containers : backend + frontend), exposée via un ALB, avec RDS, SQS + Lambda et ECR.
 
-**Outputs exposés (contrat réseau pour l’équipe ECS/ALB)** :
-- `vpc_id`
-- `public_subnet_ids`
-- `private_subnet_ids` [file:1]
+</details>
 
-### 2) Tests Terraform validés
-Commandes exécutées avec succès :
-- `terraform init`
-- `terraform validate`
-- `terraform plan` (DEV & PROD)
-- `terraform apply` (DEV uniquement pour validation réelle des ressources)
-- `terraform destroy` (DEV après test pour éviter les coûts NAT)
+<details>
+<summary>🏗 Architecture (Résumé)</summary>
 
-Objectif : vérifier que le module VPC fonctionne réellement et que les outputs nécessaires à ECS sont disponibles. [file:1]
+- **VPC (DEV/PROD)** : subnets publics + privés (multi-AZ) + NAT (DEV optimisé coût)  
+- **ALB public** : écoute HTTP:80 → Target Group “frontend”  
+- **ECS Fargate** : 1 task désirée avec 2 containers (backend + frontend)  
+- **ECR** : 2 repos → brief3-backend & brief3-frontend  
+- **RDS MySQL** : DB privée pour ECS  
+- **SQS + Lambda** : Lambda packagée en zip → deploy depuis S3  
 
-### 3) Module ECS (Fargate) — Solution 2 (2 images)
-Mise en place / adaptation du module `terraform/modules/ecs` pour déployer une application sous **ECS Fargate** avec **2 containers** dans une même task :
-- `backend` : Spring Boot
-- `frontend` : Angular servi par Nginx (reverse proxy possible vers le backend via `localhost`)
+</details>
 
-Le module ECS crée :
-- CloudWatch Log Group (logs applicatifs)
-- ECS Cluster
-- IAM Execution Role pour Fargate
-- Task Definition (2 containers)
-- ECS Service (Fargate) dans les subnets privés [file:1]
+<details>
+<summary>🧩 Architecture du projet (Vue logique AWS)</summary>
 
-> Remarque : le brief prévoit un déploiement (rolling/blue-green) et une mise à jour de service ECS via pipeline. [file:1]
+- **VPC (us-east-1)** : public + private subnets  
+- **NAT Gateway** : accès Internet pour tasks privées  
+- **ALB** : HTTP:80 → Target Group IP:80 → [URL DEV](http://devops-project-dev-alb-973074401.us-east-1.elb.amazonaws.com/)  
+- **ECS Fargate** : cluster + service + 2 containers (frontend Nginx 80, backend Spring 8080)  
+- **ECR** : brief3-backend + brief3-frontend  
+- **RDS (MySQL)** : privé, accessible ECS SG  
+- **SQS + Lambda worker** : zip stocké en S3 → Terraform  
 
----
+**Flux HTTP**: Navigateur → ALB → frontend (Target Group) → backend via localhost  
+**Flux CI/CD**: package_lambda → upload_lambda_s3 → terraform plan/apply → build/package → deploy ECS
 
-## Architecture Terraform (résumé)
-Conforme à la structure attendue : [file:1]
-- `terraform/modules/vpc/` : réseau AWS
-- `terraform/modules/ecs/` : cluster/service/task ECS Fargate
-- `terraform/dev/` : orchestration DEV (variables + main + backend)
-- `terraform/prod/` : orchestration PROD (variables + main + backend)
+</details>
 
----
+<details>
+<summary>🔗 Liens Réels (DEV)</summary>
 
-## Fichiers importants (Person 1)
-### `terraform/modules/vpc/*`
-- `main.tf` : VPC, subnets, IGW, NAT, routes
-- `variables.tf` : CIDR, AZs, options NAT, tags
-- `outputs.tf` : `vpc_id`, `public_subnet_ids`, `private_subnet_ids`
-- `versions.tf` : versions Terraform/providers
+- URL ALB : [frontend](http://devops-project-dev-alb-973074401.us-east-1.elb.amazonaws.com/)  
+- AWS Region : us-east-1  
 
-### `terraform/modules/ecs/*`
-- `main.tf` : cluster, log group, IAM execution role, task definition (2 containers), service
-- `variables.tf` : `frontend_image`, `backend_image`, ports, cpu/memory, subnets privés, vpc_id
-- `outputs.tf` (si présent) : noms cluster/service/log group utiles à la CI
+</details>
 
-### `terraform/dev/*`
-- `main.tf` : appelle `module vpc` + `module ecs`
-- `variables.tf` : reçoit `frontend_image` et `backend_image` (fournies par la CI)
-- `backend.tf` : backend remote state (S3 recommandé par le brief) [file:1]
+<details>
+<summary>📂 Structure du repository</summary>
 
-### `terraform/prod/*`
-Idem DEV mais paramétrage PROD (HA, apply manuel côté pipeline). [file:1]
+- `terraform/modules/` : modules Terraform  
+- `terraform/dev/` : environnement DEV  
+- `terraform/prod/` : environnement PROD  
+- `.gitlab-ci.yml` : pipeline CI/CD  
 
----
+</details>
 
-## Comment exécuter (local)
-### DEV — Init / Validate / Plan
+<details>
+<summary>⚙️ Prérequis</summary>
 
+- Terraform, AWS CLI, Docker  
+- Variables GitLab CI/CD : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ACCOUNT_ID, AWS_REGION, TF_VAR_db_password, LAMBDA_S3_BUCKET  
+
+</details>
+
+<details>
+<summary>🛠 Pipeline GitLab CI/CD (Stages)</summary>
+
+- validate  
+- package_lambda → dist/lambda_nodejs.zip  
+- upload_lambda_s3 → S3  
+- terraform_validate → init + validate Terraform  
+- infra_plan → tfplan  
+- infra_apply → manuel  
+- build → backend + frontend  
+- package → push ECR  
+- deploy → ECS redeploy  
+- cleanup → destroy manuel  
+
+</details>
+
+<details>
+<summary>🧪 Tests post-déploiement (DEV)</summary>
+
+1. Test HTTP frontend via ALB  
+2. Vérifier ECS → service stable  
+3. Vérifier Target Group → au moins 1 target Healthy  
+
+</details>
+
+<details>
+<summary>☁️ Buckets S3</summary>
+
+- bucket-dev-brief3  
+- bucket-prod-brief3  
+
+</details>
+
+<details>
+<summary>💻 Commandes utiles</summary>
+
+<pre style="background-color:#272822; color:#f8f8f2; padding:10px; border-radius:5px; overflow-x:auto;">
 terraform -chdir=terraform/dev init
 terraform -chdir=terraform/dev validate
-terraform -chdir=terraform/dev plan -out=plan.out
+terraform -chdir=terraform/dev output
+terraform -chdir=terraform/dev output -raw alb_dns_name
+</pre>
 
+</details>
 
-### DEV — Plan avec images (exemple)
-Deux options :
-
-**Option A : passer les variables en ligne (CMD Windows : une seule ligne)**
-terraform -chdir=terraform/dev plan -out=plan.out -var="backend_image=<ECR_BACKEND_URI:tag>" -var="frontend_image=<ECR_FRONTEND_URI:tag>"
-
-
-**Option B : fichier tfvars**
-Créer `terraform/dev/terraform.tfvars` :
-
-backend_image = "<ECR_BACKEND_URI:tag>"
-frontend_image = "<ECR_FRONTEND_URI:tag>"
-
-Puis :
-terraform -chdir=terraform/dev plan -out=plan.out
-
-
-### DEV — Apply (à faire seulement si nécessaire)
-terraform -chdir=terraform/dev destroy
-
-
----
-
-## Points d’attention / limites actuelles
-- Les tâches ECS sont configurées en subnets privés (`assign_public_ip = false`). Sans **ALB** (prévu par le brief), l’application ne sera pas accessible publiquement. [file:1]
-- Les images doivent exister dans ECR (poussées par la CI) avant un `apply` ECS, sinon le service peut échouer au démarrage. [file:1]
-- Pour respecter complètement le brief, le backend Terraform (state) doit être stocké sur S3 séparé DEV/PROD, et les plans peuvent être gérés comme artefacts (`plan.out`). [file:1]
-
----
-
-## Handover à l’équipe
-À transmettre aux autres membres :
-- Les outputs VPC (vpc_id + subnets) pour brancher ALB/ECS/monitoring. [file:1]
-- Les variables attendues par le module ECS :
-  - `backend_image` (ECR URI)
-  - `frontend_image` (ECR URI)
-- Recommandation : ajouter un ALB public (dans subnets publics) et router vers le container frontend:80, tout en gardant les tasks en subnets privés (pattern du diagramme). [file:1]
-
-<h2>Création des buckets suivant sur S3:  </h2>
+<details> <summary>⚠️ Troubleshooting</summary>
 <ul>
-<li>bucket-dev-brief3</li>
-<li>bucket-prod-brief3</li>
-</ul>
-<hr>
-<<<<<<< HEAD
-<p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1</p>
-<p>aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
-<hr>
-<p>aws s3api put-bucket-versioning --bucket bucket-dev-brief3 --versioning-configuration Status=Enabled</p>
-<p>aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configuration Status=Enabled</p>
-<hr>
-<p>aws s3api put-public-access-block --bucket bucket-dev-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
-aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
-=======
-<h4>Créer les buckets sur la region(us-east-1)</h4>
-<p>aws s3api create-bucket --bucket bucket-dev-brief3 --region us-east-1</p>
-<p>aws s3api create-bucket --bucket bucket-prod-brief3 --region us-east-1</p>
-
-<h4>Sécuriser les buckets et Activer le versioning</h4>
-
-<p>aws s3api put-bucket-versioning --bucket bucket-dev-brief3 --versioning-configuration Status=Enabled</p>
-<p>aws s3api put-bucket-versioning --bucket bucket-prod-brief3 --versioning-configuration Status=Enabled</p>
-<h4>Bloquer l’accès public</h4>
-<p>aws s3api put-public-access-block --bucket bucket-dev-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
-<p>aws s3api put-public-access-block --bucket bucket-prod-brief3 --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</p>
->>>>>>> a522641 (Dockerfile+ Terraform VPC, ECS, S3)
-
-<h3>Réinitialiser Terraform sur DEV et PROD</h3>
-<p>- terraform -chdir=terraform/dev init -reconfigure</p>
-<p>- terraform -chdir=terraform/prod init -reconfigure</p>
-
+<li>amazon/aws-cli GitLab CI : entrypoint: [""] si erreurs</li>
+<li>Variables ECS vides → lire via terraform output -raw</li>
+<li>Terraform “Unsupported argument” → vérifier modules pushés</li>
+<ul>
+</details>
