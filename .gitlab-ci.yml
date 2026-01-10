@@ -13,20 +13,15 @@ variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
-  # Registre ECR
   ECR_REGISTRY: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
   REPO_BACKEND: "brief3-backend"
   REPO_FRONTEND: "brief3-frontend"
 
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
 
-  # Lambda zip dans S3 (Option A only)
   LAMBDA_S3_KEY: "lambda/worker/lambda_nodejs.zip"
-  # IMPORTANT: définir LAMBDA_S3_BUCKET dans GitLab CI/CD Variables (Settings -> CI/CD -> Variables)
+  # Définir LAMBDA_S3_BUCKET dans GitLab Variables
 
-# ---------------------------------------------------------
-# 0) PRÉPARATION : Lambda zip + upload S3 + Terraform validate
-# ---------------------------------------------------------
 package_lambda:
   stage: validate
   image: node:20-alpine
@@ -63,17 +58,14 @@ terraform_validate:
     - terraform init -backend=false
     - terraform validate
 
-# ---------------------------------------------------------
-# 1) INFRASTRUCTURE : Plan & Apply
-# ---------------------------------------------------------
 terraform_plan:
   stage: infra_plan
   image:
     name: hashicorp/terraform:latest
     entrypoint: [""]
   needs:
-    - job: upload_lambda_s3
     - job: terraform_validate
+    - job: upload_lambda_s3
   script:
     - cd terraform/dev
     - terraform init
@@ -104,9 +96,6 @@ terraform_apply:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
 
-# ---------------------------------------------------------
-# 2) BUILD : Compilation Java & Angular
-# ---------------------------------------------------------
 build_backend:
   stage: build
   image: maven:3.8.5-openjdk-17
@@ -125,9 +114,6 @@ build_frontend:
     paths:
       - product-service-fe/dist/
 
-# ---------------------------------------------------------
-# 3) PACKAGE : Docker Push (Backend & Frontend)
-# ---------------------------------------------------------
 .docker_setup: &docker_setup
   image: docker:24.0.5
   services:
@@ -163,9 +149,6 @@ package_frontend:
     - docker tag "$ECR_REGISTRY/$REPO_FRONTEND:$IMAGE_TAG" "$ECR_REGISTRY/$REPO_FRONTEND:latest"
     - docker push "$ECR_REGISTRY/$REPO_FRONTEND:latest"
 
-# ---------------------------------------------------------
-# 4) DEPLOY : Mise à jour ECS (sans variables GitLab ECS_* )
-# ---------------------------------------------------------
 deploy_ecs:
   stage: deploy
   image:
@@ -186,9 +169,6 @@ deploy_ecs:
     - test -n "$AWS_REGION"
     - aws ecs update-service --cluster "$ECS_CLUSTER_NAME" --service "$ECS_SERVICE_NAME" --force-new-deployment --region "$AWS_REGION"
 
-# ---------------------------------------------------------
-# 5) CLEANUP : Terraform Destroy (manuel)
-# ---------------------------------------------------------
 terraform_destroy:
   stage: cleanup
   image:
@@ -198,7 +178,6 @@ terraform_destroy:
     - cd terraform/dev
     - terraform init
     - test -n "$LAMBDA_S3_BUCKET"
-    - test -n "$AWS_REGION"
     - |
       terraform destroy -auto-approve \
         -var="lambda_s3_bucket=${LAMBDA_S3_BUCKET}" \
