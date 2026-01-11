@@ -171,15 +171,14 @@ terraform_apply_lambda:
     - job: upload_lambda_s3
     - job: terraform_apply_infra
   script:
-    - *tf_workspace
-    - terraform apply -auto-approve -var="create_lambda=tr
     - cd terraform/dev
     - terraform init
-    - terraform apply -auto-approve
+    - terraform apply -auto-approve -var="create_lambda=true"
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
+    
 deploy_ecs:
   stage: post_deploy
   image:
