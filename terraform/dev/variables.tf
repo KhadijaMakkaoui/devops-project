@@ -13,10 +13,6 @@ variable "db_password" {
   sensitive = true 
 }
 
-variable "lambda_s3_bucket" { 
-   type = string 
-#   default = "lambda-s3-bucket-devops-brief"
-}
 variable "lambda_s3_key"    {
   type = string 
   default = "lambda/worker/lambda_nodejs.zip"
