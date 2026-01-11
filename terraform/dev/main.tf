@@ -99,4 +99,5 @@ module "sqs" {
   tags        = { Owner = "team-devops" }
 
   lambda_s3_key = var.lambda_s3_key
+  create_lambda  = var.create_lambda
 }
