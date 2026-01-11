@@ -1,18 +1,10 @@
-variable "project" {
-    type = string
-    }
-variable "environment" {
-    type = string
-    }
-variable "tags" { 
-    type = map(string) 
-    default = {} 
-    }
+variable "project" { type = string }
+variable "environment" { type = string }
 
-#variable "lambda_zip_path" {
-#  type        = string
-#  description = "Chemin vers le zip de la Lambda (ex: lambda.zip ou chemin relatif)."
-#}
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
 
 variable "lambda_handler" {
   type    = string
@@ -39,10 +31,7 @@ variable "max_receive_count" {
   default = 5
 }
 
-variable "lambda_s3_bucket" {
-  type = string 
-# 
-}
-variable "lambda_s3_key"    { 
-type = string 
+variable "lambda_s3_key" {
+  type    = string
+  default = "lambda/worker/lambda_nodejs.zip"
 }
