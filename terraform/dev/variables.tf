@@ -21,3 +21,7 @@ variable "lambda_source_code_hash" {
   type = string
   default = null 
   }
+  variable "create_lambda" {
+  type    = bool
+  default = false
+}

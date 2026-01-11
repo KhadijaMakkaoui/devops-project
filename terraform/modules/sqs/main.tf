@@ -86,16 +86,17 @@ resource "aws_iam_role_policy" "lambda_sqs" {
 }
 
 #################################
-# Lambda (zip uploadé par CI)
+# Lambda (créée seulement si create_lambda=true)
 #################################
 
 resource "aws_lambda_function" "worker" {
+  count = var.create_lambda ? 1 : 0
+
   function_name = "${var.project}-${var.environment}-worker"
   role          = aws_iam_role.lambda_role.arn
   handler       = var.lambda_handler
   runtime       = var.lambda_runtime
 
-  # Le zip est uploadé par la CI dans ce bucket/key
   s3_bucket = aws_s3_bucket.lambda_artifacts.bucket
   s3_key    = var.lambda_s3_key
 
@@ -108,8 +109,11 @@ resource "aws_lambda_function" "worker" {
 }
 
 resource "aws_lambda_event_source_mapping" "from_sqs" {
+  count = var.create_lambda ? 1 : 0
+
   event_source_arn = aws_sqs_queue.jobs.arn
-  function_name    = aws_lambda_function.worker.arn
-  batch_size       = var.batch_size
-  enabled          = true
+  function_name    = aws_lambda_function.worker[0].arn
+
+  batch_size = var.batch_size
+  enabled    = true
 }

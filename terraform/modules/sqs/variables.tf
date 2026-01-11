@@ -1,5 +1,10 @@
-variable "project" { type = string }
-variable "environment" { type = string }
+variable "project" {
+  type = string
+}
+
+variable "environment" {
+  type = string
+}
 
 variable "tags" {
   type    = map(string)
@@ -34,4 +39,10 @@ variable "max_receive_count" {
 variable "lambda_s3_key" {
   type    = string
   default = "lambda/worker/lambda_nodejs.zip"
+}
+
+# NOUVEAU: pilote la création de la Lambda + event source mapping
+variable "create_lambda" {
+  type    = bool
+  default = false
 }
