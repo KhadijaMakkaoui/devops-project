@@ -29,3 +29,7 @@ output "ecs_cluster_name" {
 output "ecs_service_name" {
   value = module.ecs.service_name
 }
+
+output "lambda_artifacts_bucket" {
+  value = module.sqs.lambda_artifacts_bucket
+}

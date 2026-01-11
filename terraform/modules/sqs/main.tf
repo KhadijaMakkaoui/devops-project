@@ -10,23 +10,17 @@ locals {
 }
 
 #################################
-# S3 : Stockage du code Lambda
+# S3 : Bucket code Lambda
 #################################
 
-# 1. Création du Bucket
-resource "aws_s3_bucket" "lambda_artifacts" {
-  # Assurez-vous que ce nom est unique au monde
-  bucket        = "lambda-s3-bucket-devops-brief-${var.environment}" 
-  force_destroy = true 
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
 }
 
-# 2. Upload du fichier ZIP (L'étape qui manquait)
-resource "aws_s3_object" "lambda_code" {
-  bucket = aws_s3_bucket.lambda_artifacts.id
-  key    = var.lambda_s3_key
-  #source = var.lambda_zip_path
-  # Le etag permet de forcer la mise à jour si le contenu du ZIP change
-  #etag   = filemd5(var.lambda_zip_path)
+resource "aws_s3_bucket" "lambda_artifacts" {
+  bucket        = "lambda-s3-devops-brief-${var.environment}-${random_id.bucket_suffix.hex}"
+  force_destroy = true
+  tags          = local.common_tags
 }
 
 #################################
@@ -50,7 +44,7 @@ resource "aws_sqs_queue" "jobs" {
 }
 
 #################################
-# IAM : Rôles et Politiques
+# IAM
 #################################
 
 data "aws_iam_policy_document" "lambda_assume" {
@@ -70,7 +64,7 @@ resource "aws_iam_role" "lambda_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_basic_logs" {
-  role       = aws_iam_role.lambda_role.name
+  role      = aws_iam_role.lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
@@ -92,7 +86,7 @@ resource "aws_iam_role_policy" "lambda_sqs" {
 }
 
 #################################
-# Lambda Function
+# Lambda (zip uploadé par CI)
 #################################
 
 resource "aws_lambda_function" "worker" {
@@ -101,27 +95,21 @@ resource "aws_lambda_function" "worker" {
   handler       = var.lambda_handler
   runtime       = var.lambda_runtime
 
-  # Références au bucket interne et à l'objet uploadé
-  s3_bucket = aws_s3_bucket.lambda_artifacts.id
-  s3_key    = aws_s3_object.lambda_code.key
-
-  # Détection automatique de changement de code
-  #source_code_hash = filebase64sha256(var.lambda_zip_path)
-
-  # IMPORTANT : On attend que l'objet S3 soit créé avant de créer la Lambda
-  depends_on = [
-    aws_s3_object.lambda_code,
-    aws_iam_role_policy_attachment.lambda_basic_logs
-  ]
+  # Le zip est uploadé par la CI dans ce bucket/key
+  s3_bucket = aws_s3_bucket.lambda_artifacts.bucket
+  s3_key    = var.lambda_s3_key
 
   timeout = var.lambda_timeout
   tags    = local.common_tags
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_basic_logs
+  ]
 }
 
 resource "aws_lambda_event_source_mapping" "from_sqs" {
   event_source_arn = aws_sqs_queue.jobs.arn
   function_name    = aws_lambda_function.worker.arn
-
-  batch_size = var.batch_size
-  enabled    = true
+  batch_size       = var.batch_size
+  enabled          = true
 }
