@@ -115,4 +115,7 @@ terraform -chdir=terraform/dev output -raw alb_dns_name
 <ul>
 </details>
 <hr style="border:1px solid #4CAF50;">
-<p style="text-align:center; color:#777; font-size:0.9em;">Made with 😇 by Yassine Chahbounia & Khadija Makkaoui</p>
+<p style="text-align:center; color:#777; font-size:0.9em;">
+Made with 😇 by Yassine Chahbounia & Khadija Makkaoui
+</p>
+
